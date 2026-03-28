@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Bank Management System</title>
+
+<style>
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: #eef1f6;
+    margin: 0;
+}
+header {
+    background: linear-gradient(90deg, #003d99, #0066ff);
+    color: white;
+    padding: 18px;
+    text-align: center;
+    font-size: 24px;
+}
+.container { padding: 25px; }
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 10px;
+    max-width: 430px;
+    margin: auto;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+button {
+    padding: 12px;
+    width: 100%;
+    margin-top: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #0066ff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+button.secondary { background: #6c757d; }
+button.danger { background: #dc3545; }
+button:hover { opacity: 0.9; }
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.hidden { display: none; }
+.success { color: green; margin-top: 10px; }
+.error { color: red; margin-top: 10px; }
+.link {
+    color: #0066ff;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    display: inline-block;
+}
+ul { padding-left: 18px; }
+</style>
+</head>
+
+<body>
+
+<header>Secure Bank Management System</header>
+
+<div class="container">
+
+<!-- MAIN MENU -->
+<div id="menu" class="card">
+    <h3>Main Menu</h3>
+    <button onclick="showBank()">🏦 Bank Overview</button>
+    <button onclick="showLogin()">👤 User Login</button>
+    <button onclick="showRegister()">➕ Add New User</button>
+</div>
+
+<!-- BANK OVERVIEW -->
+<div id="bank" class="card hidden">
+    <h3>Bank Overview</h3>
+    <p>Total Users: <b id="totalUsers">0</b></p>
+    <p>Total Bank Balance: ₹<b id="totalBalance">0</b></p>
+    <button class="secondary" onclick="goBack()">Back</button>
+</div>
+
+<!-- REGISTER -->
+<div id="register" class="card hidden">
+    <h3>Create Account</h3>
+    <input id="rname" placeholder="Full Name">
+    <input id="ruser" placeholder="Username">
+    <input id="rpass" type="password" placeholder="Password">
+    <button onclick="registerUser()">Create Account</button>
+    <p id="regMsg"></p>
+    <button class="secondary" onclick="goBack()">Back</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="card hidden">
+    <h3>User Login</h3>
+    <input id="luser" placeholder="Username">
+    <input id="lpass" type="password" placeholder="Password">
+    <button onclick="loginUser()">Login</button>
+    <span class="link" onclick="showForgot()">Forgot Password?</span>
+    <p id="loginMsg"></p>
+    <button class="secondary" onclick="goBack()">Back</button>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div id="forgot" class="card hidden">
+    <h3>Reset Password</h3>
+    <input id="fuser" placeholder="Username">
+    <input id="fname" placeholder="Registered Full Name">
+    <input id="newpass" type="password" placeholder="New Password">
+    <button onclick="resetPassword()">Reset Password</button>
+    <p id="forgotMsg"></p>
+    <button class="secondary" onclick="goBack()">Back</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="card hidden">
+    <h3>Welcome, <span id="userName"></span></h3>
+
+    <button onclick="checkBalance()">💰 Check Balance</button>
+    <p id="balanceMsg"></p>
+
+    <input id="amount" type="number" placeholder="Enter amount">
+    <button onclick="deposit()">➕ Deposit</button>
+    <button class="danger" onclick="withdraw()">➖ Withdraw</button>
+
+    <h4>Transaction History</h4>
+    <ul id="history"></ul>
+
+    <button class="secondary" onclick="logout()">Logout</button>
+</div>
+
+</div>
+
+<script>
+let users = [];
+let currentUser = null;
+
+function hideAll() {
+    document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+}
+
+function goBack() {
+    hideAll();
+    menu.classList.remove("hidden");
+}
+
+function showRegister(){ hideAll(); register.classList.remove("hidden"); }
+function showLogin(){ hideAll(); login.classList.remove("hidden"); }
+function showForgot(){ hideAll(); forgot.classList.remove("hidden"); }
+
+function showBank() {
+    hideAll();
+    bank.classList.remove("hidden");
+    totalUsers.innerText = users.length;
+    totalBalance.innerText = users.reduce((s,u)=>s+u.balance,0);
+}
+
+function registerUser() {
+    users.push({
+        name: rname.value,
+        user: ruser.value,
+        pass: rpass.value,
+        balance: 0,
+        history: []
+    });
+    regMsg.innerHTML = "<span class='success'>Account created successfully</span>";
+    rname.value = ruser.value = rpass.value = "";
+}
+
+function loginUser() {
+    currentUser = users.find(u => u.user === luser.value && u.pass === lpass.value);
+    if (currentUser) showDashboard();
+    else loginMsg.innerHTML = "<span class='error'>Invalid credentials</span>";
+}
+
+function resetPassword() {
+    let u = users.find(x => x.user === fuser.value && x.name === fname.value);
+    if (u) {
+        u.pass = newpass.value;
+        forgotMsg.innerHTML = "<span class='success'>Password reset successful</span>";
+    } else {
+        forgotMsg.innerHTML = "<span class='error'>Verification failed</span>";
+    }
+}
+
+function showDashboard() {
+    hideAll();
+    dashboard.classList.remove("hidden");
+    userName.innerText = currentUser.name;
+    updateHistory();
+}
+
+function checkBalance() {
+    balanceMsg.innerHTML = `<span class="success">Current Balance: ₹${currentUser.balance}</span>`;
+}
+
+function deposit() {
+    let amt = Number(amount.value);
+    if (amt > 0) {
+        currentUser.balance += amt;
+        currentUser.history.push(`Deposited ₹${amt}`);
+        updateHistory();
+    }
+}
+
+function withdraw() {
+    let amt = Number(amount.value);
+    if (amt > 0 && currentUser.balance >= amt) {
+        currentUser.balance -= amt;
+        currentUser.history.push(`Withdrawn ₹${amt}`);
+        updateHistory();
+    } else alert("Insufficient Balance");
+}
+
+function updateHistory() {
+    history.innerHTML = "";
+    currentUser.history.forEach(h => {
+        let li = document.createElement("li");
+        li.textContent = h;
+        history.appendChild(li);
+    });
+    amount.value = "";
+}
+
+function logout() {
+    currentUser = null;
+    goBack();
+}
+</script>
+
+</body>
+</html>

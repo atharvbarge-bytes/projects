@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Bank System</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+}
+
+header {
+    background: #004aad;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+}
+
+.container {
+    padding: 20px;
+}
+
+button {
+    padding: 12px 20px;
+    margin: 8px 0;
+    width: 100%;
+    border: none;
+    background: #004aad;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #003080;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 400px;
+    margin: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+}
+
+.hidden {
+    display: none;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+</style>
+</head>
+
+<body>
+
+<header>Secure Banking System</header>
+
+<div class="container">
+
+<!-- MAIN MENU -->
+<div id="menu" class="card">
+    <h3>Main Menu</h3>
+    <button onclick="showBankDetails()">1. Bank Daily Uphold</button>
+    <button onclick="showLogin()">2. User Details</button>
+    <button onclick="showRegister()">3. Add User</button>
+</div>
+
+<!-- BANK DETAILS -->
+<div id="bank" class="card hidden">
+    <h3>Bank Daily Uphold</h3>
+    <p>Total Users: <span id="totalUsers">0</span></p>
+    <p>Total Balance: ₹<span id="totalBalance">0</span></p>
+    <button onclick="goBack()">Back</button>
+</div>
+
+<!-- REGISTER -->
+<div id="register" class="card hidden">
+    <h3>Add User</h3>
+    <input id="rname" placeholder="Full Name">
+    <input id="ruser" placeholder="Username">
+    <input id="rpass" type="password" placeholder="Password">
+    <button onclick="registerUser()">Register</button>
+    <p id="regMsg"></p>
+    <button onclick="goBack()">Back</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="card hidden">
+    <h3>User Login</h3>
+    <input id="luser" placeholder="Username">
+    <input id="lpass" type="password" placeholder="Password">
+    <button onclick="loginUser()">Login</button>
+    <p id="loginMsg"></p>
+    <button onclick="goBack()">Back</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="card hidden">
+    <h3>Welcome, <span id="userName"></span></h3>
+    <p>Balance: ₹<span id="balance"></span></p>
+    <button onclick="deposit()">Deposit ₹1000</button>
+    <button onclick="withdraw()">Withdraw ₹500</button>
+    <button onclick="logout()">Logout</button>
+</div>
+
+</div>
+
+<script>
+let users = [];
+let currentUser = null;
+
+function hideAll() {
+    document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+}
+
+function goBack() {
+    hideAll();
+    document.getElementById("menu").classList.remove("hidden");
+}
+
+function showRegister() {
+    hideAll();
+    document.getElementById("register").classList.remove("hidden");
+}
+
+function showLogin() {
+    hideAll();
+    document.getElementById("login").classList.remove("hidden");
+}
+
+function showBankDetails() {
+    hideAll();
+    document.getElementById("bank").classList.remove("hidden");
+    document.getElementById("totalUsers").innerText = users.length;
+
+    let sum = users.reduce((a, u) => a + u.balance, 0);
+    document.getElementById("totalBalance").innerText = sum;
+}
+
+function registerUser() {
+    let name = rname.value;
+    let user = ruser.value;
+    let pass = rpass.value;
+
+    users.push({ name, user, pass, balance: 0 });
+    regMsg.innerHTML = "<span class='success'>User Registered Successfully</span>";
+
+    rname.value = ruser.value = rpass.value = "";
+}
+
+function loginUser() {
+    let u = luser.value;
+    let p = lpass.value;
+
+    let found = users.find(x => x.user === u && x.pass === p);
+
+    if (found) {
+        currentUser = found;
+        showDashboard();
+    } else {
+        loginMsg.innerHTML = "<span class='error'>Invalid Credentials</span>";
+    }
+}
+
+function showDashboard() {
+    hideAll();
+    dashboard.classList.remove("hidden");
+    userName.innerText = currentUser.name;
+    balance.innerText = currentUser.balance;
+}
+
+function deposit() {
+    currentUser.balance += 1000;
+    balance.innerText = currentUser.balance;
+}
+
+function withdraw() {
+    if (currentUser.balance >= 500) {
+        currentUser.balance -= 500;
+        balance.innerText = currentUser.balance;
+    } else {
+        alert("Insufficient Balance");
+    }
+}
+
+function logout() {
+    currentUser = null;
+    goBack();
+}
+</script>
+
+</body>
+</html>
